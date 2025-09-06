@@ -45,17 +45,17 @@
             background: #ff5555
         }
 
-        #player {
+        #player{
             position: fixed;
-            margin: auto;
-            object-fit: contain;
-            width: auto;        /* 保持原比例 */
-            height: auto;
             inset: 0;
-            max-width: 90vw;    /* 最大 90% 视口宽 */
-            max-height: 90vh;
-            object-fit: cover;
-            display: none
+            margin: auto;
+            /* 固定 9:16 竖屏窗口 */
+            width: 90vh * 9 / 16;   /* CSS 不支持运算，用真实像素或 calc */
+            height: 90vh;           /* 高占满 90%，宽按 9:16 自动缩小 */
+            max-width: 90vw;        /* 防止超屏 */
+            max-height: 90vw * 16 / 9;
+            object-fit: contain;    /* 完整画面，多余留黑 */
+            display: none;
         }
     </style>
 </head>
