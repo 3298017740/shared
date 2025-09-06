@@ -46,6 +46,8 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
+            position: relative;
+            z-index: 5;
         }
         
         button:hover {
@@ -185,51 +187,189 @@
     </div>
 
     <script>
-        /* ===== 1. 画封面 ===== */
-        const cv = document.getElementById('cover');
-        const ctx = cv.getContext('2d');
+        // 粒子系统
+        class ParticleSystem {
+            constructor(canvas, particleCount = 50) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.mouse = { x: null, y: null, radius: 100 };
+                this.animationId = null;
+                
+                // 初始化粒子
+                for (let i = 0; i < particleCount; i++) {
+                    this.particles.push(this.createParticle());
+                }
+                
+                // 鼠标移动监听
+                canvas.addEventListener('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    this.mouse.x = e.clientX - rect.left;
+                    this.mouse.y = e.clientY - rect.top;
+                });
+                
+                canvas.addEventListener('mouseleave', () => {
+                    this.mouse.x = null;
+                    this.mouse.y = null;
+                });
+            }
+            
+            createParticle() {
+                const colors = [
+                    `rgba(255, ${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}, ${Math.random() * 0.5 + 0.5})`,
+                    `rgba(255, 100, 100, ${Math.random() * 0.5 + 0.3})`,
+                    `rgba(100, 100, 255, ${Math.random() * 0.5 + 0.3})`,
+                    `rgba(100, 255, 100, ${Math.random() * 0.5 + 0.3})`
+                ];
+                
+                return {
+                    x: Math.random() * this.canvas.width,
+                    y: Math.random() * this.canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 2,
+                    speedY: (Math.random() - 0.5) * 2,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                };
+            }
+            
+            drawStaticElements() {
+                const ctx = this.ctx;
+                const canvas = this.canvas;
+                
+                // 背景渐变
+                const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                g.addColorStop(0, '#111');
+                g.addColorStop(1, '#330033');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // 背景渐变
-        const g = ctx.createLinearGradient(0, 0, 640, 360);
-        g.addColorStop(0, '#111');
-        g.addColorStop(1, '#330033');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, 640, 360);
+                // 中间大三角▶
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const size = 40;
+                ctx.moveTo(centerX - size, centerY - size);
+                ctx.lineTo(centerX - size, centerY + size);
+                ctx.lineTo(centerX + size, centerY);
+                ctx.closePath();
+                ctx.fill();
 
-        // 中间大三角▶
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.moveTo(280, 140);
-        ctx.lineTo(280, 220);
-        ctx.lineTo(360, 180);
-        ctx.closePath();
-        ctx.fill();
-
-        // 文字
-        ctx.fillStyle = '#ff0033';
-        ctx.font = 'bold 48px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('PLAY', 320, 280);
-        
-        // 添加一些装饰性粒子
-        for (let i = 0; i < 50; i++) {
-            ctx.fillStyle = `rgba(255, ${Math.random() * 100}, ${Math.random() * 100}, ${Math.random() * 0.5 + 0.5})`;
-            ctx.beginPath();
-            ctx.arc(
-                Math.random() * 640,
-                Math.random() * 360,
-                Math.random() * 3 + 1,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
+                // 文字
+                ctx.fillStyle = '#ff0033';
+                ctx.font = 'bold 48px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('PLAY', centerX, centerY + size * 3);
+            }
+            
+            update() {
+                // 更新粒子位置
+                for (let i = 0; i < this.particles.length; i++) {
+                    let p = this.particles[i];
+                    
+                    // 移动粒子
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    
+                    // 边界检测 - 反弹
+                    if (p.x <= 0 || p.x >= this.canvas.width) {
+                        p.speedX = -p.speedX;
+                        p.x = p.x <= 0 ? 0 : this.canvas.width;
+                    }
+                    
+                    if (p.y <= 0 || p.y >= this.canvas.height) {
+                        p.speedY = -p.speedY;
+                        p.y = p.y <= 0 ? 0 : this.canvas.height;
+                    }
+                    
+                    // 鼠标交互
+                    if (this.mouse.x !== null && this.mouse.y !== null) {
+                        let dx = this.mouse.x - p.x;
+                        let dy = this.mouse.y - p.y;
+                        let distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < this.mouse.radius) {
+                            let angle = Math.atan2(dy, dx);
+                            let force = (this.mouse.radius - distance) / this.mouse.radius;
+                            p.speedX -= Math.cos(angle) * force * 0.5;
+                            p.speedY -= Math.sin(angle) * force * 0.5;
+                        }
+                    }
+                    
+                    // 速度衰减
+                    p.speedX *= 0.99;
+                    p.speedY *= 0.99;
+                }
+            }
+            
+            draw() {
+                // 绘制静态元素
+                this.drawStaticElements();
+                
+                // 绘制粒子
+                for (let i = 0; i < this.particles.length; i++) {
+                    let p = this.particles[i];
+                    
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    // 绘制粒子间的连线
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        let p2 = this.particles[j];
+                        let dx = p.x - p2.x;
+                        let dy = p.y - p2.y;
+                        let distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 100) {
+                            this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.2 * (1 - distance/100)})`;
+                            this.ctx.lineWidth = 0.5;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(p.x, p.y);
+                            this.ctx.lineTo(p2.x, p2.y);
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.update();
+                this.draw();
+                this.animationId = requestAnimationFrame(() => this.animate());
+            }
+            
+            start() {
+                if (!this.animationId) {
+                    this.animate();
+                }
+            }
+            
+            stop() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
         }
 
-        /* ===== 2. 播放逻辑 ===== */
+        // 初始化粒子系统
+        const cv = document.getElementById('cover');
+        const particleSystem = new ParticleSystem(cv, 80);
+        
+        // 开始动画
+        particleSystem.start();
+
+        /* ===== 播放逻辑 ===== */
         const player = document.getElementById('player');
         const videoContainer = document.getElementById('video-container');
         
         function playVideo() {
+            // 停止粒子动画
+            particleSystem.stop();
+            
             document.getElementById('enter').style.display = 'none';
             videoContainer.style.display = 'flex';
             
@@ -244,6 +384,9 @@
             document.getElementById('enter').style.display = 'flex';
             player.pause();
             player.currentTime = 0;
+            
+            // 重新启动粒子动画
+            particleSystem.start();
             
             // 退出全屏
             if (document.fullscreenElement) {
