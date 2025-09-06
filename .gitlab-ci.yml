@@ -3,7 +3,7 @@ pages:
   script:
     - mkdir public
     - cd src/ASCII-Video
-    - find . -type f ! -name 'src/ASCII-Video/ji.mp4' -exec cp --parents {} ../../public/ \;
+    - find . -type f ! -name 'ji.mp4' -exec cp --parents {} ../../public/ \;
   artifacts:
     paths:
       - public
