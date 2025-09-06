@@ -2,7 +2,7 @@ pages:
   stage: deploy
   script:
     - mkdir public
-    - cp -r src/l/* public/  # ← 只复制 src/l 目录下的文件
+    - cp -r src/ASCII-Video/* public/  # ← 只复制 src/l 目录下的文件
   artifacts:
     paths:
       - public
