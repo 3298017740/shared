@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <title>自绘封面 · 点击播放</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: #000;
+            color: #fff;
+            font-family: system-ui;
+            overflow: hidden
+        }
+
+        #enter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex-direction: column
+        }
+
+        canvas {
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, .2)
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 28px;
+            font-size: 20px;
+            border: none;
+            border-radius: 6px;
+            background: #ff0033;
+            color: #fff;
+            cursor: pointer;
+            transition: .3s
+        }
+
+        button:hover {
+            background: #ff5555
+        }
+
+        #player {
+            position: fixed;
+            margin: auto;
+            object-fit: contain;
+            width: auto;        /* 保持原比例 */
+            height: auto;
+            inset: 0;
+            max-width: 90vw;    /* 最大 90% 视口宽 */
+            max-height: 90vh;
+            object-fit: cover;
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 自绘封面 -->
+    <div id="enter">
+        <canvas id="cover" width="640" height="360"></canvas>
+        <button onclick="playVideo()">点击进入</button>
+    </div>
+
+    <!-- 视频 -->
+    <video id="player" src="https://jihulab.com/wanna/shared/-/raw/main/src/ASCII-Video/ji.mp4" autoplay muted
+        loop></video>
+
+    <script>
+        /* ===== 1. 画封面 ===== */
+        const cv = document.getElementById('cover');
+        const ctx = cv.getContext('2d');
+
+        // 背景渐变
+        const g = ctx.createLinearGradient(0, 0, 640, 360);
+        g.addColorStop(0, '#111');
+        g.addColorStop(1, '#003');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 640, 360);
+
+        // 中间大三角▶
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(280, 140);
+        ctx.lineTo(280, 220);
+        ctx.lineTo(360, 180);
+        ctx.closePath();
+        ctx.fill();
+
+        // 文字
+        ctx.fillStyle = '#ff0033';
+        ctx.font = 'bold 48px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PLAY', 320, 280);
+
+        /* ===== 2. 播放逻辑 ===== */
+        function playVideo() {
+            document.getElementById('enter').style.display = 'none';
+            const v = document.getElementById('player');
+            v.style.display = 'block';
+            v.requestFullscreen().catch(() => { });
+
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) { location.reload(); }
+            });
+        }
+    </script>
+
+</body>
+
+</html>
