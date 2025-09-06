@@ -2,7 +2,8 @@ pages:
   stage: deploy
   script:
     - mkdir public
-    - rsync -av --exclude='ji.mp4' src/ASCII-Video/ public/   # 排除文件 & 目录
+    - cd src/ASCII-Video
+    - find . -type f ! -name 'src/ASCII-Video/ji.mp4' -exec cp --parents {} ../../public/ \;
   artifacts:
     paths:
       - public
