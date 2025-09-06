@@ -3,19 +3,25 @@
 <head>
     <meta charset="utf-8">
     <title>ASCII-Video Player</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        html, body {
-            height: 100%;
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
             background: #000;
             color: #fff;
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: fixed; /* 防止滚动 */
         }
         
         #enter {
@@ -25,22 +31,32 @@
             flex-direction: column;
             width: 100%;
             height: 100%;
+            padding: 20px;
             position: relative;
             z-index: 2;
         }
         
-        canvas {
+        #cover-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        
+        #cover {
+            width: 100%;
+            height: auto;
             border-radius: 12px;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-            margin-bottom: 20px;
+            display: block;
         }
         
         button {
             margin-top: 20px;
-            padding: 12px 28px;
-            font-size: 20px;
+            padding: 14px 32px;
+            font-size: 18px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             background: linear-gradient(45deg, #ff0033, #ff5555);
             color: #fff;
             cursor: pointer;
@@ -48,15 +64,13 @@
             box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
             position: relative;
             z-index: 5;
+            width: 80%;
+            max-width: 300px;
         }
         
-        button:hover {
+        button:hover, button:active {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 0, 51, 0.4);
-        }
-        
-        button:active {
-            transform: translateY(1px);
         }
         
         #video-container {
@@ -74,16 +88,20 @@
         }
         
         #player {
-            width: 100vh;
+            width: 100%;
             height: 100%;
-            max-width: 100%;
             object-fit: contain;
         }
         
         .controls {
-            margin-top: 20px;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
             display: flex;
+            justify-content: center;
             gap: 15px;
+            padding: 0 20px;
         }
         
         .control-btn {
@@ -99,6 +117,7 @@
             justify-content: center;
             align-items: center;
             transition: all 0.3s;
+            backdrop-filter: blur(5px);
         }
         
         .control-btn:hover {
@@ -121,19 +140,14 @@
             justify-content: center;
             align-items: center;
             z-index: 11;
+            backdrop-filter: blur(5px);
         }
         
         #close-btn:hover {
             background: rgba(255, 0, 51, 0.7);
         }
         
-        /* 竖屏提示 */
-        @media (orientation: landscape) {
-            .orientation-warning {
-                display: flex;
-            }
-        }
-        
+        /* 横屏提示 */
         .orientation-warning {
             display: none;
             position: fixed;
@@ -158,6 +172,63 @@
         .orientation-warning p {
             font-size: 18px;
             max-width: 80%;
+            line-height: 1.5;
+        }
+        
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            #enter {
+                padding: 15px;
+            }
+            
+            button {
+                padding: 12px 24px;
+                font-size: 16px;
+                width: 90%;
+            }
+            
+            .controls {
+                bottom: 10px;
+            }
+            
+            .control-btn, #close-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #cover-container {
+                width: 95%;
+            }
+            
+            button {
+                margin-top: 15px;
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .control-btn, #close-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+        
+        /* 横屏检测 */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .orientation-warning {
+                display: flex;
+            }
+            
+            #enter, #video-container {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -165,7 +236,9 @@
 <body>
     <!-- 自绘封面 -->
     <div id="enter">
-        <canvas id="cover" width="640" height="360"></canvas>
+        <div id="cover-container">
+            <canvas id="cover"></canvas>
+        </div>
         <button onclick="playVideo()">点击进入</button>
     </div>
 
@@ -187,6 +260,20 @@
     </div>
 
     <script>
+        // 初始化Canvas尺寸
+        function initCanvasSize() {
+            const canvas = document.getElementById('cover');
+            const container = document.getElementById('cover-container');
+            const maxWidth = Math.min(640, window.innerWidth - 40);
+            const height = maxWidth * 0.5625; // 16:9比例
+            
+            canvas.width = maxWidth;
+            canvas.height = height;
+            container.style.width = maxWidth + 'px';
+            
+            return { width: maxWidth, height: height };
+        }
+        
         // 粒子系统
         class ParticleSystem {
             constructor(canvas, particleCount = 50) {
@@ -209,6 +296,19 @@
                 });
                 
                 canvas.addEventListener('mouseleave', () => {
+                    this.mouse.x = null;
+                    this.mouse.y = null;
+                });
+                
+                // 触摸事件监听（移动端）
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    this.mouse.x = e.touches[0].clientX - rect.left;
+                    this.mouse.y = e.touches[0].clientY - rect.top;
+                }, { passive: false });
+                
+                canvas.addEventListener('touchend', () => {
                     this.mouse.x = null;
                     this.mouse.y = null;
                 });
@@ -248,7 +348,7 @@
                 ctx.beginPath();
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
-                const size = 40;
+                const size = Math.min(canvas.width, canvas.height) * 0.1;
                 ctx.moveTo(centerX - size, centerY - size);
                 ctx.lineTo(centerX - size, centerY + size);
                 ctx.lineTo(centerX + size, centerY);
@@ -257,7 +357,7 @@
 
                 // 文字
                 ctx.fillStyle = '#ff0033';
-                ctx.font = 'bold 48px sans-serif';
+                ctx.font = `bold ${Math.max(24, canvas.width * 0.06)}px sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.fillText('PLAY', centerX, centerY + size * 3);
             }
@@ -353,14 +453,40 @@
                     this.animationId = null;
                 }
             }
+            
+            resize(width, height) {
+                this.canvas.width = width;
+                this.canvas.height = height;
+                
+                // 重新初始化粒子
+                this.particles = [];
+                for (let i = 0; i < 50; i++) {
+                    this.particles.push(this.createParticle());
+                }
+            }
         }
 
-        // 初始化粒子系统
-        const cv = document.getElementById('cover');
-        const particleSystem = new ParticleSystem(cv, 80);
+        // 全局变量
+        let particleSystem;
         
-        // 开始动画
-        particleSystem.start();
+        // 初始化页面
+        function initPage() {
+            const canvasSize = initCanvasSize();
+            const cv = document.getElementById('cover');
+            
+            // 初始化粒子系统
+            particleSystem = new ParticleSystem(cv, Math.min(50, Math.floor(canvasSize.width * canvasSize.height / 500)));
+            particleSystem.start();
+        }
+        
+        // 初始化
+        window.addEventListener('load', initPage);
+        window.addEventListener('resize', function() {
+            const canvasSize = initCanvasSize();
+            if (particleSystem) {
+                particleSystem.resize(canvasSize.width, canvasSize.height);
+            }
+        });
 
         /* ===== 播放逻辑 ===== */
         const player = document.getElementById('player');
@@ -368,7 +494,9 @@
         
         function playVideo() {
             // 停止粒子动画
-            particleSystem.stop();
+            if (particleSystem) {
+                particleSystem.stop();
+            }
             
             document.getElementById('enter').style.display = 'none';
             videoContainer.style.display = 'flex';
@@ -386,7 +514,9 @@
             player.currentTime = 0;
             
             // 重新启动粒子动画
-            particleSystem.start();
+            if (particleSystem) {
+                particleSystem.start();
+            }
             
             // 退出全屏
             if (document.fullscreenElement) {
@@ -404,6 +534,8 @@
         
         function toggleMute() {
             player.muted = !player.muted;
+            const muteBtn = document.querySelector('.control-btn:nth-child(2)');
+            muteBtn.textContent = player.muted ? '🔇' : '🔊';
         }
         
         function toggleFullscreen() {
@@ -441,24 +573,12 @@
             }
         });
         
-        // 响应式调整
-        window.addEventListener('resize', adjustVideoSize);
-        
-        function adjustVideoSize() {
-            // 确保视频保持竖屏比例
-            const player = document.getElementById('player');
-            const container = document.getElementById('video-container');
-            
-            if (window.innerHeight > window.innerWidth) {
-                // 竖屏模式
-                player.style.width = 'auto';
-                player.style.height = '100%';
-            } else {
-                // 横屏模式
-                player.style.width = '100%';
-                player.style.height = 'auto';
+        // 防止移动端下拉刷新
+        document.addEventListener('touchmove', function(e) {
+            if (videoContainer.style.display !== 'flex') {
+                e.preventDefault();
             }
-        }
+        }, { passive: false });
     </script>
 </body>
 </html>
