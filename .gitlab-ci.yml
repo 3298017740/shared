@@ -2,7 +2,7 @@ pages:
   stage: deploy
   script:
     - mkdir public
-    - cp -r src/ASCII-Video/* public/  # ← 只复制 src/l 目录下的文件
+    - rsync -av --exclude='ji.mp4' src/ASCII-Video/ public/   # 排除文件 & 目录
   artifacts:
     paths:
       - public
