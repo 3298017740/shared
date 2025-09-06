@@ -9,6 +9,7 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
         
         html, body {
@@ -21,7 +22,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            position: fixed; /* 防止滚动 */
+            position: fixed;
         }
         
         #enter {
@@ -51,26 +52,28 @@
             display: block;
         }
         
-        button {
-            margin-top: 20px;
-            padding: 14px 32px;
-            font-size: 18px;
+        .play-button {
+            margin-top: 25px;
+            padding: 16px 40px;
+            font-size: 20px;
+            font-weight: bold;
             border: none;
-            border-radius: 8px;
+            border-radius: 50px;
             background: linear-gradient(45deg, #ff0033, #ff5555);
             color: #fff;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
+            box-shadow: 0 6px 20px rgba(255, 0, 51, 0.4);
             position: relative;
             z-index: 5;
             width: 80%;
             max-width: 300px;
+            letter-spacing: 1px;
         }
         
-        button:hover, button:active {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 0, 51, 0.4);
+        .play-button:hover, .play-button:active {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 0, 51, 0.5);
         }
         
         #video-container {
@@ -95,56 +98,98 @@
         
         .controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 25px;
             left: 0;
             width: 100%;
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 20px;
             padding: 0 20px;
         }
         
         .control-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: none;
+            border-radius: 50%;
+            width: 55px;
+            height: 55px;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.1);
+        }
+        
+        #close-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
             background: rgba(255, 255, 255, 0.2);
             border: none;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             color: white;
             font-size: 20px;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: all 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        #close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             z-index: 11;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
         }
         
         #close-btn:hover {
             background: rgba(255, 0, 51, 0.7);
+            transform: scale(1.1);
+        }
+        
+        .volume-control {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .volume-slider {
+            position: absolute;
+            bottom: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .volume-control:hover .volume-slider {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #ff0033;
+            cursor: pointer;
         }
         
         /* 横屏提示 */
@@ -155,24 +200,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 100;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             text-align: center;
-            padding: 20px;
+            padding: 30px;
         }
         
         .orientation-warning i {
-            font-size: 48px;
-            margin-bottom: 20px;
+            font-size: 52px;
+            margin-bottom: 25px;
         }
         
         .orientation-warning p {
-            font-size: 18px;
-            max-width: 80%;
-            line-height: 1.5;
+            font-size: 20px;
+            max-width: 85%;
+            line-height: 1.6;
         }
         
         /* 移动端适配 */
@@ -181,20 +226,26 @@
                 padding: 15px;
             }
             
-            button {
-                padding: 12px 24px;
-                font-size: 16px;
-                width: 90%;
+            .play-button {
+                padding: 14px 32px;
+                font-size: 18px;
+                width: 85%;
             }
             
             .controls {
-                bottom: 10px;
+                bottom: 20px;
+                gap: 15px;
             }
             
             .control-btn, #close-btn {
-                width: 44px;
-                height: 44px;
-                font-size: 18px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            #close-btn {
+                top: 20px;
+                right: 20px;
             }
         }
         
@@ -203,20 +254,31 @@
                 width: 95%;
             }
             
-            button {
-                margin-top: 15px;
-                padding: 10px 20px;
-                font-size: 15px;
+            .play-button {
+                margin-top: 20px;
+                padding: 12px 28px;
+                font-size: 16px;
+                width: 90%;
             }
             
             .controls {
-                gap: 10px;
+                gap: 12px;
+                bottom: 15px;
             }
             
             .control-btn, #close-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 16px;
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+            
+            #close-btn {
+                top: 15px;
+                right: 15px;
+            }
+            
+            .orientation-warning p {
+                font-size: 18px;
             }
         }
         
@@ -239,7 +301,7 @@
         <div id="cover-container">
             <canvas id="cover"></canvas>
         </div>
-        <button onclick="playVideo()">点击进入</button>
+        <button class="play-button" onclick="playVideo()">点击播放</button>
     </div>
 
     <!-- 视频容器 -->
@@ -247,8 +309,11 @@
         <button id="close-btn" onclick="closeVideo()">✕</button>
         <video id="player" src="https://jihulab.com/wanna/shared/-/raw/main/src/ASCII-Video/ji.mp4" autoplay muted loop></video>
         <div class="controls">
-            <button class="control-btn" onclick="togglePlay()">⏯️</button>
-            <button class="control-btn" onclick="toggleMute()">🔊</button>
+            <button class="control-btn" onclick="togglePlay()" id="play-btn">⏸️</button>
+            <div class="volume-control">
+                <button class="control-btn" onclick="toggleMute()" id="mute-btn">🔇</button>
+                <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="0" oninput="changeVolume(this.value)">
+            </div>
             <button class="control-btn" onclick="toggleFullscreen()">⛶</button>
         </div>
     </div>
@@ -477,6 +542,13 @@
             // 初始化粒子系统
             particleSystem = new ParticleSystem(cv, Math.min(50, Math.floor(canvasSize.width * canvasSize.height / 500)));
             particleSystem.start();
+            
+            // 初始化音量控制
+            const volumeSlider = document.getElementById('volume-slider');
+            volumeSlider.value = 0; // 初始静音
+            
+            // 初始化静音按钮状态
+            updateMuteButton();
         }
         
         // 初始化
@@ -505,6 +577,9 @@
             player.play().catch(e => {
                 console.log("自动播放被阻止，需要用户交互");
             });
+            
+            // 更新播放按钮状态
+            document.getElementById('play-btn').textContent = '⏸️';
         }
         
         function closeVideo() {
@@ -522,20 +597,45 @@
             if (document.fullscreenElement) {
                 document.exitFullscreen().catch(() => {});
             }
+            
+            // 重置播放按钮
+            document.getElementById('play-btn').textContent = '⏸️';
         }
         
         function togglePlay() {
+            const playBtn = document.getElementById('play-btn');
             if (player.paused) {
                 player.play();
+                playBtn.textContent = '⏸️';
             } else {
                 player.pause();
+                playBtn.textContent = '▶️';
             }
         }
         
         function toggleMute() {
             player.muted = !player.muted;
-            const muteBtn = document.querySelector('.control-btn:nth-child(2)');
+            updateMuteButton();
+            
+            // 如果取消静音，设置音量为50%
+            if (!player.muted && player.volume === 0) {
+                player.volume = 0.5;
+                document.getElementById('volume-slider').value = 0.5;
+            }
+        }
+        
+        function changeVolume(value) {
+            player.volume = value;
+            player.muted = (value == 0);
+            updateMuteButton();
+        }
+        
+        function updateMuteButton() {
+            const muteBtn = document.getElementById('mute-btn');
             muteBtn.textContent = player.muted ? '🔇' : '🔊';
+            
+            // 同步音量滑块
+            document.getElementById('volume-slider').value = player.muted ? 0 : player.volume;
         }
         
         function toggleFullscreen() {
@@ -569,6 +669,12 @@
                     case 'f':
                         toggleFullscreen();
                         break;
+                    case 'ArrowUp':
+                        changeVolume(Math.min(1, player.volume + 0.1));
+                        break;
+                    case 'ArrowDown':
+                        changeVolume(Math.max(0, player.volume - 0.1));
+                        break;
                 }
             }
         });
@@ -579,6 +685,11 @@
                 e.preventDefault();
             }
         }, { passive: false });
+        
+        // 视频事件监听
+        player.addEventListener('volumechange', function() {
+            updateMuteButton();
+        });
     </script>
 </body>
 </html>
