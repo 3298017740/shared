@@ -1,76 +1,188 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="utf-8">
-    <title>自绘封面 · 点击播放</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>竖屏视频播放器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        html,
-        body {
+        html, body {
             height: 100%;
             margin: 0;
+            padding: 0;
             background: #000;
             color: #fff;
-            font-family: system-ui;
-            overflow: hidden
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-
+        
         #enter {
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
+            width: 100%;
             height: 100%;
-            flex-direction: column
+            position: relative;
+            z-index: 2;
         }
-
+        
         canvas {
             border-radius: 12px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, .2)
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
         }
-
+        
         button {
             margin-top: 20px;
             padding: 12px 28px;
             font-size: 20px;
             border: none;
             border-radius: 6px;
-            background: #ff0033;
+            background: linear-gradient(45deg, #ff0033, #ff5555);
             color: #fff;
             cursor: pointer;
-            transition: .3s
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
         }
-
+        
         button:hover {
-            background: #ff5555
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 0, 51, 0.4);
         }
-
-        #player{
-            position: fixed;
-            inset: 0;
-            margin: auto;
-            /* 固定 9:16 竖屏窗口 */
-            width: 90vh * 9 / 16;   /* CSS 不支持运算，用真实像素或 calc */
-            height: 90vh;           /* 高占满 90%，宽按 9:16 自动缩小 */
-            max-width: 90vw;        /* 防止超屏 */
-            max-height: 90vw * 16 / 9;
-            object-fit: contain;    /* 完整画面，多余留黑 */
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #video-container {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #player {
+            width: 100vh;
+            height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        #close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 11;
+        }
+        
+        #close-btn:hover {
+            background: rgba(255, 0, 51, 0.7);
+        }
+        
+        /* 竖屏提示 */
+        @media (orientation: landscape) {
+            .orientation-warning {
+                display: flex;
+            }
+        }
+        
+        .orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .orientation-warning i {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .orientation-warning p {
+            font-size: 18px;
+            max-width: 80%;
         }
     </style>
 </head>
 
 <body>
-
     <!-- 自绘封面 -->
     <div id="enter">
         <canvas id="cover" width="640" height="360"></canvas>
         <button onclick="playVideo()">点击进入</button>
     </div>
 
-    <!-- 视频 -->
-    <video id="player" src="https://jihulab.com/wanna/shared/-/raw/main/src/ASCII-Video/ji.mp4" autoplay muted
-        loop></video>
+    <!-- 视频容器 -->
+    <div id="video-container">
+        <button id="close-btn" onclick="closeVideo()">✕</button>
+        <video id="player" src="https://jihulab.com/wanna/shared/-/raw/main/src/ASCII-Video/ji.mp4" autoplay muted loop></video>
+        <div class="controls">
+            <button class="control-btn" onclick="togglePlay()">⏯️</button>
+            <button class="control-btn" onclick="toggleMute()">🔊</button>
+            <button class="control-btn" onclick="toggleFullscreen()">⛶</button>
+        </div>
+    </div>
+    
+    <!-- 横屏提示 -->
+    <div class="orientation-warning">
+        <i>📱</i>
+        <p>为了更好的体验，请将手机旋转至竖屏模式</p>
+    </div>
 
     <script>
         /* ===== 1. 画封面 ===== */
@@ -80,7 +192,7 @@
         // 背景渐变
         const g = ctx.createLinearGradient(0, 0, 640, 360);
         g.addColorStop(0, '#111');
-        g.addColorStop(1, '#003');
+        g.addColorStop(1, '#330033');
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, 640, 360);
 
@@ -98,20 +210,112 @@
         ctx.font = 'bold 48px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('PLAY', 320, 280);
+        
+        // 添加一些装饰性粒子
+        for (let i = 0; i < 50; i++) {
+            ctx.fillStyle = `rgba(255, ${Math.random() * 100}, ${Math.random() * 100}, ${Math.random() * 0.5 + 0.5})`;
+            ctx.beginPath();
+            ctx.arc(
+                Math.random() * 640,
+                Math.random() * 360,
+                Math.random() * 3 + 1,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
+        }
 
         /* ===== 2. 播放逻辑 ===== */
+        const player = document.getElementById('player');
+        const videoContainer = document.getElementById('video-container');
+        
         function playVideo() {
             document.getElementById('enter').style.display = 'none';
-            const v = document.getElementById('player');
-            v.style.display = 'block';
-            v.requestFullscreen().catch(() => { });
-
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement) { location.reload(); }
+            videoContainer.style.display = 'flex';
+            
+            // 尝试自动播放
+            player.play().catch(e => {
+                console.log("自动播放被阻止，需要用户交互");
             });
         }
+        
+        function closeVideo() {
+            videoContainer.style.display = 'none';
+            document.getElementById('enter').style.display = 'flex';
+            player.pause();
+            player.currentTime = 0;
+            
+            // 退出全屏
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+        
+        function togglePlay() {
+            if (player.paused) {
+                player.play();
+            } else {
+                player.pause();
+            }
+        }
+        
+        function toggleMute() {
+            player.muted = !player.muted;
+        }
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+        
+        // 监听全屏变化
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                // 退出全屏时不做特殊处理
+            }
+        });
+        
+        // 键盘控制
+        document.addEventListener('keydown', (e) => {
+            if (videoContainer.style.display === 'flex') {
+                switch(e.key) {
+                    case ' ':
+                        togglePlay();
+                        break;
+                    case 'Escape':
+                        closeVideo();
+                        break;
+                    case 'm':
+                        toggleMute();
+                        break;
+                    case 'f':
+                        toggleFullscreen();
+                        break;
+                }
+            }
+        });
+        
+        // 响应式调整
+        window.addEventListener('resize', adjustVideoSize);
+        
+        function adjustVideoSize() {
+            // 确保视频保持竖屏比例
+            const player = document.getElementById('player');
+            const container = document.getElementById('video-container');
+            
+            if (window.innerHeight > window.innerWidth) {
+                // 竖屏模式
+                player.style.width = 'auto';
+                player.style.height = '100%';
+            } else {
+                // 横屏模式
+                player.style.width = '100%';
+                player.style.height = 'auto';
+            }
+        }
     </script>
-
 </body>
-
 </html>
